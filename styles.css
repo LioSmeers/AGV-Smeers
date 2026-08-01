@@ -363,7 +363,7 @@ h3 {
 .hero-media {
   object-fit: cover;
   object-position: 54% 48%;
-  transform: rotate(-2deg) scale(1.08);
+  transform: rotate(-1deg) scale(1.06);
   animation: hero-settle 1.3s ease-out both;
 }
 
@@ -423,8 +423,8 @@ h3 {
 }
 
 @keyframes hero-settle {
-  from { opacity: 0; transform: rotate(-2deg) scale(1.12); }
-  to { opacity: 1; transform: rotate(-2deg) scale(1.08); }
+  from { opacity: 0; transform: rotate(-1deg) scale(1.1); }
+  to { opacity: 1; transform: rotate(-1deg) scale(1.06); }
 }
 
 @keyframes cue {
@@ -1079,7 +1079,7 @@ h3 {
   position: absolute;
   z-index: -2;
   inset: 0;
-  background: url("assets/images/16-afgewerkte-voorgevel.jpg") center 48% / cover no-repeat;
+  background: url("assets/images/16-chatgpt.png") center 48% / cover no-repeat;
 }
 
 .project-cta::after {
@@ -1588,13 +1588,13 @@ h3 {
 
   .hero-media {
     object-position: 55% 48%;
-    transform: rotate(-2deg) scale(1.12);
+    transform: rotate(-1deg) scale(1.1);
     animation-name: hero-settle-mobile;
   }
 
   @keyframes hero-settle-mobile {
-    from { opacity: 0; transform: rotate(-2deg) scale(1.16); }
-    to { opacity: 1; transform: rotate(-2deg) scale(1.12); }
+    from { opacity: 0; transform: rotate(-1deg) scale(1.14); }
+    to { opacity: 1; transform: rotate(-1deg) scale(1.1); }
   }
   .hero-overlay { background: linear-gradient(90deg, rgba(10, 12, 11, 0.88), rgba(10, 12, 11, 0.55)); }
   .hero-grid { padding-top: calc(var(--header-height) + 70px); }
