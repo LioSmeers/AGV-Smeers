@@ -195,19 +195,86 @@
 
   if (form) {
     const fields = Array.from(form.querySelectorAll("input[required], select[required], textarea[required]"));
+    const submitButton = form.querySelector(".button--submit");
+    const statusMessage = form.querySelector("[data-form-status]");
+
+    const setFormStatus = (message, type = "success") => {
+      if (!statusMessage) return;
+
+      statusMessage.textContent = message;
+      statusMessage.hidden = false;
+      statusMessage.classList.toggle("form-status--success", type === "success");
+      statusMessage.classList.toggle("form-status--error", type === "error");
+    };
+
+    const clearFormStatus = () => {
+      if (!statusMessage) return;
+
+      statusMessage.textContent = "";
+      statusMessage.hidden = true;
+      statusMessage.classList.remove("form-status--success", "form-status--error");
+    };
+
+    const formSubmitEndpoint = () => {
+      const action = form.getAttribute("action") || "";
+      return action.replace("https://formsubmit.co/", "https://formsubmit.co/ajax/");
+    };
 
     fields.forEach((field) => {
       field.addEventListener(field.type === "checkbox" || field.tagName === "SELECT" ? "change" : "input", () => {
         if (field.getAttribute("aria-invalid") === "true" || field.value) validateField(field);
+        if (!statusMessage?.hidden) clearFormStatus();
       });
       field.addEventListener("blur", () => validateField(field));
     });
 
-    form.addEventListener("submit", (event) => {
+    form.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      clearFormStatus();
+
       const invalidFields = fields.filter((field) => !validateField(field));
       if (invalidFields.length > 0) {
-        event.preventDefault();
         invalidFields[0].focus();
+        return;
+      }
+
+      if (!submitButton) return;
+
+      const originalButtonText = submitButton.innerHTML;
+      submitButton.disabled = true;
+      submitButton.innerHTML = "Aanvraag wordt verstuurd...";
+
+      try {
+        const response = await fetch(formSubmitEndpoint(), {
+          method: "POST",
+          body: new FormData(form),
+          headers: { Accept: "application/json" }
+        });
+        const responseText = await response.text();
+        let result = {};
+
+        try {
+          result = responseText ? JSON.parse(responseText) : {};
+        } catch {
+          result = { message: responseText };
+        }
+
+        if (!response.ok || result.success === false || result.success === "false") {
+          throw new Error(result.message || "De aanvraag kon niet worden verstuurd.");
+        }
+
+        form.reset();
+        fields.forEach((field) => field.setAttribute("aria-invalid", "false"));
+        setFormStatus("Aanvraag verstuurd. Bedankt, we nemen zo snel mogelijk contact met u op.");
+      } catch (error) {
+        const activationMessage = error.message.includes("needs Activation")
+          ? "Het formulier moet nog geactiveerd worden via de activatiemail van FormSubmit."
+          : "Er ging iets mis bij het versturen. Probeer opnieuw of neem telefonisch contact op.";
+
+        setFormStatus(activationMessage, "error");
+      } finally {
+        submitButton.disabled = false;
+        submitButton.innerHTML = originalButtonText;
       }
     });
   }
