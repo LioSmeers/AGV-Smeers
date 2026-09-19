@@ -10,6 +10,8 @@
 
   const updateHeader = () => {
     header?.classList.toggle("header--scrolled", window.scrollY > 24);
+    const scrollRange = document.documentElement.scrollHeight - window.innerHeight;
+    header?.style.setProperty("--page-progress", String(scrollRange > 0 ? Math.min(1, Math.max(0, window.scrollY / scrollRange)) : 0));
   };
 
   const setMenu = (open, returnFocus = false) => {
@@ -31,6 +33,7 @@
 
   updateHeader();
   window.addEventListener("scroll", updateHeader, { passive: true });
+  window.addEventListener("resize", updateHeader, { passive: true });
 
   menuButton?.addEventListener("click", () => setMenu(!menuOpen, menuOpen));
   backdrop?.addEventListener("click", () => setMenu(false, true));
@@ -95,21 +98,84 @@
   });
 
   document.querySelectorAll("[data-comparison]").forEach((comparison) => {
-    const range = comparison.querySelector(".comparison__range");
-    if (!range) return;
-
-    const updateComparison = () => {
-      const position = `${range.value}%`;
-      comparison.style.setProperty("--comparison-position", position);
-      range.setAttribute("aria-valuetext", `${range.value} procent werkfase zichtbaar`);
+    const updateComparison = (progress) => {
+      comparison.style.setProperty("--comparison-position", `${progress}%`);
     };
 
-    range.addEventListener("input", updateComparison);
-    range.addEventListener("change", updateComparison);
-    updateComparison();
+    const track = comparison.closest(".before-after");
+    const stage = track?.querySelector(".before-after__stage");
+    if (!track || !stage || reduceMotion) return;
+
+    let frame = 0;
+    const syncScroll = () => {
+      frame = 0;
+      if (!track.classList.contains("before-after--scroll")) {
+        updateComparison(50);
+        return;
+      }
+      const padding = parseFloat(getComputedStyle(track).paddingTop);
+      const top = parseFloat(getComputedStyle(stage).top);
+      const distance = track.offsetHeight - padding - stage.offsetHeight;
+      const progress = (top - track.getBoundingClientRect().top - padding) / Math.max(1, distance);
+      updateComparison(Math.max(0, Math.min(1, (progress - 0.08) / 0.84)) * 100);
+    };
+    const scheduleScroll = () => {
+      if (!frame) frame = requestAnimationFrame(syncScroll);
+    };
+    const measureStage = () => {
+      const headerHeight = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--header-height"));
+      track.style.setProperty("--stage-height", `${stage.offsetHeight}px`);
+      track.classList.toggle("before-after--scroll", stage.offsetHeight <= window.innerHeight - headerHeight - 40);
+      scheduleScroll();
+    };
+    window.addEventListener("scroll", scheduleScroll, { passive: true });
+    window.addEventListener("resize", measureStage, { passive: true });
+    if ("ResizeObserver" in window) new ResizeObserver(measureStage).observe(stage);
+    measureStage();
   });
 
   const galleryItems = Array.from(document.querySelectorAll(".gallery-item"));
+  const gallery = document.querySelector(".gallery");
+  const galleryToggle = document.querySelector(".gallery-toggle");
+  const extraProjects = gallery ? Array.from(gallery.children).slice(4) : [];
+
+  if (galleryToggle && extraProjects.length) {
+    extraProjects.forEach((item) => { item.hidden = true; });
+    galleryToggle.hidden = false;
+    galleryToggle.addEventListener("click", () => {
+      const expanded = galleryToggle.getAttribute("aria-expanded") !== "true";
+      extraProjects.forEach((item) => { item.hidden = !expanded; });
+      galleryToggle.setAttribute("aria-expanded", String(expanded));
+      galleryToggle.innerHTML = expanded
+        ? 'Minder realisaties <span aria-hidden="true">−</span>'
+        : 'Meer realisaties <span aria-hidden="true">+</span>';
+      if (!expanded) galleryToggle.scrollIntoView({ block: "center", behavior: "instant" });
+    });
+  }
+
+  if ("IntersectionObserver" in window) {
+    const navLinks = Array.from(navigation?.querySelectorAll('a[href^="#"]') || []);
+    const sectionObserver = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (!entry.isIntersecting) return;
+        navLinks.forEach((link) => {
+          if (link.hash === `#${entry.target.id}`) link.setAttribute("aria-current", "location");
+          else link.removeAttribute("aria-current");
+        });
+      });
+    }, { rootMargin: "-15% 0px -65% 0px", threshold: 0 });
+    document.querySelectorAll("main > section[id]").forEach((section) => sectionObserver.observe(section));
+
+    const services = Array.from(document.querySelectorAll(".service-line"));
+    const serviceObserver = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (!entry.isIntersecting) return;
+        services.forEach((service) => service.classList.toggle("is-current", service === entry.target));
+      });
+    }, { rootMargin: "-35% 0px -45% 0px", threshold: 0 });
+    services.forEach((service) => serviceObserver.observe(service));
+  }
+
   const lightbox = document.querySelector(".lightbox");
   const lightboxImage = lightbox?.querySelector("figure img");
   const lightboxCaption = lightbox?.querySelector("figcaption");
@@ -152,6 +218,9 @@
   });
 
   closeButton?.addEventListener("click", closeLightbox);
+  lightbox?.querySelector(".lightbox-contact")?.addEventListener("click", () => {
+    closeLightbox();
+  });
   previousButton?.addEventListener("click", () => updateLightbox(activeImage - 1));
   nextButton?.addEventListener("click", () => updateLightbox(activeImage + 1));
 
