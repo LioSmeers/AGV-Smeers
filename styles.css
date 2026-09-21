@@ -1622,7 +1622,8 @@ body:has(.lightbox[open]) { overflow: hidden; }
 }
 
 .hero {
-  position: relative;
+  position: sticky;
+  top: 0;
   border-radius: 0;
 }
 

@@ -91,8 +91,8 @@
         return;
       }
 
-      const rect = hero.getBoundingClientRect();
-      const progress = Math.max(0, Math.min(1, -rect.top / Math.max(1, rect.height)));
+      const heroTop = hero.offsetTop;
+      const progress = Math.max(0, Math.min(1, (window.scrollY - heroTop) / Math.max(1, hero.offsetHeight)));
       hero.style.setProperty("--hero-parallax", `${(progress * 52).toFixed(2)}px`);
     };
 
