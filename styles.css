@@ -280,8 +280,8 @@ h3 {
 
 .brand {
   display: flex;
-  width: clamp(205px, 16vw, 245px);
-  height: 100%;
+  width: clamp(190px, 15vw, 220px);
+  height: 78%;
   align-items: center;
   text-decoration: none;
   transition: width 220ms ease;
@@ -296,7 +296,7 @@ h3 {
 
 .header--scrolled .brand,
 .menu-active .brand {
-  width: clamp(195px, 15vw, 225px);
+  width: clamp(182px, 14vw, 208px);
 }
 
 .site-nav {
@@ -1460,7 +1460,7 @@ body:has(.lightbox[open]) { overflow: hidden; }
 }
 
 .footer-brand img {
-  width: 270px;
+  width: 240px;
   height: auto;
   margin-bottom: 22px;
 }
@@ -1884,13 +1884,13 @@ body:has(.lightbox[open]) { overflow: hidden; }
   }
 
   .site-header .brand {
-    width: 236px;
-    padding-right: 32px;
+    width: 210px;
+    padding-right: 20px;
     border-right: 1px solid var(--line);
     flex-shrink: 0;
   }
 
-  .site-header .brand img { max-height: 64px; }
+  .site-header .brand img { max-height: none; }
   .site-nav { height: 100%; gap: clamp(18px, 2.5vw, 40px); }
 
   .site-nav > a:not(.button) {
@@ -1925,7 +1925,7 @@ body:has(.lightbox[open]) { overflow: hidden; }
 }
 
 @media (min-width: 821px) and (max-width: 1000px) {
-  .site-header .brand { width: 204px; padding-right: 20px; }
+  .site-header .brand { width: 190px; padding-right: 18px; }
   .site-nav .button--header { padding-inline: 20px; gap: 14px; }
 }
 
