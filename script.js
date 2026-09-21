@@ -79,6 +79,32 @@
   });
 
   const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  const hero = document.querySelector(".hero");
+  if (!reduceMotion && hero) {
+    let heroFrame = 0;
+
+    const syncHeroParallax = () => {
+      heroFrame = 0;
+      if (window.innerWidth <= 820) {
+        hero.style.setProperty("--hero-parallax", "0px");
+        return;
+      }
+
+      const rect = hero.getBoundingClientRect();
+      const progress = Math.max(0, Math.min(1, -rect.top / Math.max(1, rect.height)));
+      hero.style.setProperty("--hero-parallax", `${(progress * 52).toFixed(2)}px`);
+    };
+
+    const scheduleHeroParallax = () => {
+      if (!heroFrame) heroFrame = requestAnimationFrame(syncHeroParallax);
+    };
+
+    window.addEventListener("scroll", scheduleHeroParallax, { passive: true });
+    window.addEventListener("resize", scheduleHeroParallax, { passive: true });
+    syncHeroParallax();
+  }
+
   if (!reduceMotion && "IntersectionObserver" in window) {
     document.documentElement.classList.add("reveal-ready");
     const revealObserver = new IntersectionObserver((entries, observer) => {
@@ -225,7 +251,7 @@
   nextButton?.addEventListener("click", () => updateLightbox(activeImage + 1));
 
   lightbox?.addEventListener("click", (event) => {
-    if (event.target === lightbox) closeLightbox();
+    if (event.target === lightbox || event.target.classList.contains("lightbox-inner")) closeLightbox();
   });
 
   lightbox?.addEventListener("keydown", (event) => {
